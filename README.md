@@ -1,6 +1,10 @@
 ## 📁 프로젝트 파일 구조
 
-📁 crawler/ ├── 🐳 Dockerfile ├── 🐍 notice_crawler.py ├── 📄 requirements.txt └── 🐳 docker-compose.yml
+📁 crawler/
+    ├── 🐳 Dockerfile
+    ├── 🐍 notice_crawler.py
+    ├── 📄 requirements.txt
+    └── 🐳 docker-compose.yml
 
 # 📌 아이콘 설명:
 🐳 → Docker 관련 파일
