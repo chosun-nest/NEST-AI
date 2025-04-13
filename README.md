@@ -1,17 +1,18 @@
 ## 📁 프로젝트 파일 구조
-<pre> ```txt 
+<pre> 
 📁 crawler/
     ├── 🐳 Dockerfile
     ├── 🐍 notice_crawler.py
     ├── 📄 requirements.txt
     └── 🐳 docker-compose.yml
- ``` </pre>
-
+ </pre>
+ 
+<pre> 
 # 📌 아이콘 설명:
 🐳 → Docker 관련 파일
 🐍 → Python 파일
 📄 → 일반 텍스트/설정 파일
-
+ </pre>
 ---
 
 # 📌 2025-04-13 수정 내용
