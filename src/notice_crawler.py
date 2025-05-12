@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+from urllib.parse import urljoin
 import requests
 
 app = FastAPI()
@@ -30,11 +31,19 @@ CATEGORIES = {
     "컴퓨터공학과 공지": "https://eie.chosun.ac.kr/ce/5670/subview.do"
 }
 
+# 기본 URL 추출 함수
+def get_base_url(full_url):
+    parts = full_url.split("/", 3)
+    return f"{parts[0]}//{parts[2]}"
+
 @app.get("/crawl/{category}")
 def crawl_notices(category: str):
     url = CATEGORIES.get(category)
     if not url:
         return {"error": "Invalid category"}
+    
+    # BASE_URL 추출
+    BASE_URL = get_base_url(url)
 
     # Selenium 옵션 설정
     options = Options()
@@ -65,33 +74,59 @@ def crawl_notices(category: str):
         number = cols[0].text.strip()
         title = cols[1].text.strip()
         writer = cols[2].text.strip()
-        date = cols[3].text.strip()
-        views = cols[4].text.strip().replace(",", "")
-        link = cols[1].find("a")["href"] if cols[1].find("a") else ""
 
+        # 마감일 처리 (장학공지)
+        if category == "장학공지":
+            # 마감일은 두 개의 <div> 중 첫 번째
+            date_divs = cols[3].find_all("div", class_="date_fl")
+            if len(date_divs) > 0:
+                date = date_divs[0].text.strip()
+            else:
+                date = cols[3].text.strip()
+        else:
+            date = cols[3].text.strip()
+
+        views = cols[4].text.strip().replace(",", "")
+
+        #  제목과 링크 처리
+        subject_cell = cols[1]
+        link_tag = subject_cell.select_one("a")
+        title = link_tag.text.strip() if link_tag else subject_cell.text.strip()
+        href = link_tag["href"] if link_tag else ""
+        link = urljoin(BASE_URL, href)
+        
         # 2025년 작성일 필터링
         if not date.startswith("2025"):
             continue
         
         # 장학공지의 "접수 마감일" 처리
         deadline = ""
-        if category == "장학공지" and len(cols) > 5:
-            deadline = cols[5].text.strip()
-
-        # 공지사항 데이터 구조
-        notice = {
-            "category": category,
-            "number": number,
-            "title": title,
-            "writer": writer,
-            "date": date,
-            "views": int(views),
-            "link": link
-        }
+        if category == "장학공지":
+            deadline = date_divs[1].text.strip()
+            notice = {
+                "category": category,
+                "number": number,
+                "title": title,
+                "writer": writer,
+                "date": date,
+                "deadline": deadline,
+                "views": int(views),
+                "link": link
+            }
+        else:
+            notice = {
+                "category": category,
+                "number": number,
+                "title": title,
+                "writer": writer,
+                "date": date,
+                "views": int(views),
+                "link": link
+            }
         
-        # 장학공지의 접수 마감일 추가
-        if deadline:
-            notice["deadline"] = deadline
+        # # 장학공지의 접수 마감일 추가
+        # if deadline:
+        #     notice["deadline"] = deadline
         
         notices.append(notice)
 
