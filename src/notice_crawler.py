@@ -19,9 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Spring API URL
-SPRING_API_URL = "http://localhost:6030/api/notices"
-
 # 크롤링 대상 URL (카테고리별)
 CATEGORIES = {
     "일반공지": "https://www3.chosun.ac.kr/chosun/217/subview.do",
@@ -110,7 +107,7 @@ def crawl_notices(category: str):
                 "writer": writer,
                 "date": date,
                 "deadline": deadline,
-                "views": int(views),
+                "views": views,
                 "link": link
             }
         else:
@@ -120,7 +117,7 @@ def crawl_notices(category: str):
                 "title": title,
                 "writer": writer,
                 "date": date,
-                "views": int(views),
+                "views": views,
                 "link": link
             }
         
@@ -130,11 +127,12 @@ def crawl_notices(category: str):
         
         notices.append(notice)
 
-        # Spring 서버로 데이터 전송
-        try:
-            res = requests.post(SPRING_API_URL, json=notice)
-            print(f"✅ 등록 완료: {notice['title']}")
-        except Exception as e:
-            print(f"❌ 전송 실패: {e}")
+    # 모든 notice를 한 번에 Spring 서버로 전송
+    try:
+        api_url = f"http://localhost:6030/api/v1/notices/{category}" # TODO: 추후 배포 중인 스프링 서버 주소로 변경 필요
+        res = requests.post(api_url, json={"notices": notices})
+        print(f"✅ 전체 등록 완료: {res.status_code}, 스프링 응답: {res.json()}")
+    except Exception as e:
+        print(f"❌ 전체 등록 실패: {e}")
 
     return {"message": f"{len(notices)} notices added", "notices": notices}

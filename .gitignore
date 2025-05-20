@@ -1,15 +1,3 @@
 # 가상환경 디렉토리 (보통 venv 또는 .venv)
 venv/
-.venv/
-
-# Python 바이트코드 캐시
-__pycache__/
-*.py[cod]
-
-# IDE 설정 파일들 (VSCode, PyCharm 등)
-.vscode/
-.idea/
-
-# 환경 설정 파일
-.env
-.env.*
+src/__pycache__/
