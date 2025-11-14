@@ -1,0 +1,56 @@
+services:
+  # AI Chatbot 서비스
+  chatbot:
+    build:
+      context: .
+      dockerfile: ./chatbot/Dockerfile
+    container_name: nest-chatbot
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    env_file:
+      - .env
+    volumes:
+      - ./chatbot:/app
+    restart: unless-stopped
+    networks:
+      - nest-network
+
+  # Notice Crawler 서비스
+  crawler:
+    build:
+      context: .
+      dockerfile: ./crawler/Dockerfile
+    container_name: nest-crawler
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./crawler:/app
+    restart: unless-stopped
+    networks:
+      - nest-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # 호스트 접근 허용
+    # Chrome headless 모드를 위한 추가 설정
+    shm_size: '2gb'
+
+  # Crawler Scheduler 서비스 (매일 자동 크롤링)
+  scheduler:
+    build:
+      context: .
+      dockerfile: ./crawler/Dockerfile.scheduler
+    container_name: nest-scheduler
+    depends_on:
+      - crawler
+    volumes:
+      - ./crawler:/app
+    restart: unless-stopped
+    networks:
+      - nest-network
+    environment:
+      - TZ=Asia/Seoul  # 한국 시간대 설정
+
+networks:
+  nest-network:
+    driver: bridge

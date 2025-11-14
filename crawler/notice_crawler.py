@@ -65,9 +65,17 @@ def crawl_notices(category: str):
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("user-agent=Mozilla/5.0")
 
-    # ChromeDriver 설치 및 로드
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=options)
+    # ChromeDriver 설정
+    import os
+    if os.path.exists("/usr/bin/chromium"):
+        # Docker 환경 (chromium 사용)
+        options.binary_location = "/usr/bin/chromium"
+        service = Service("/usr/bin/chromedriver")
+        driver = webdriver.Chrome(service=service, options=options)
+    else:
+        # 로컬 환경 (Chrome 사용)
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
     driver.get(url)
 
     notices = []
@@ -188,7 +196,10 @@ def crawl_notices(category: str):
 
     # Spring API로 전송
     try:
-        api_url = f"http://49.246.71.236:6030/api/v1/notices/{category}"
+        # Docker 환경에서는 host.docker.internal 사용, 아니면 외부 IP 사용
+        import os
+        spring_host = os.getenv("SPRING_API_HOST", "host.docker.internal")
+        api_url = f"http://{spring_host}:6030/api/v1/notices/{category}"
         res = requests.post(api_url, json={"notices": notices})
         print(f"✅ 등록 시도 상태 코드: {res.status_code}")
         print(f"✅ 응답 본문: {res.text}")  # 여기서 JSON이 안 나오면 문제!
