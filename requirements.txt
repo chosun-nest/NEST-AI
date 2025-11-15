@@ -8,3 +8,9 @@ python-dotenv
 openai
 pydantic
 apscheduler
+chromadb
+langchain
+langchain-openai
+langchain-community
+tiktoken
+httpx

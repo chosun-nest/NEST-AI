@@ -3,3 +3,9 @@ uvicorn
 python-dotenv
 openai
 pydantic
+chromadb
+langchain
+langchain-openai
+langchain-community
+tiktoken
+httpx
